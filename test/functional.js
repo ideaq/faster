@@ -1,81 +1,139 @@
 var fs    = require('fs');
 var path  = require('path');
-var S     = require('./setup');
-var utils = require('../lib/utils');
 var test  = require('tape');
+var chalk = require('chalk');
 
-test("utils.isdir > Confirm " +S.rootdir +" IS a directory", function(t){
-  S.setup(function() {
-    utils.isdir(S.rootdir, [], function(err, isdir){
-      t.equal(err, null, "no errors");
-      t.equal(isdir, true, S.rootdir + " is defs a directory");
-      t.end();
-    }); // end utils.isdir
-  }) // end S.setup
-})
+var S     = require('./setup');
+// console.log(S);
+// console.log(chalk.bgGreen.black.bold(" EMPTY: " +S.empty +" "));
+// dummy functions:
+var final = function(list) {
+  console.log(">>>> final: "+list.length);
+}
+var cb    = function(list) {
+  console.log(">>>> cb: " + list.length)
+}
+var kw    = function(fd, dirlist, counter, afterwalking) {
+  console.log(">>>> kw: " + list.length)
+}
 
-test("utils.isdir > " +S.filename +" is NOT directory", function(t){
-  utils.isdir(S.filename, [], function(err, isdir){
-    t.equal(err, null, "no errors");
-    t.equal(isdir, false, S.filename + " is NOT a directory");
+// test(chalk.green("utils.isdir > Confirm " +S.rootdir +" IS a directory (Keep Walking)"), function(t){
+//   S.setup(function() {
+//     var utils = require('../lib/utils');
+//     utils.isdir(S.rootdir, [], cb, function keepwalking(fd, dirlist) {
+//       // console.log(" - - - - - - - - - - - - - - ");
+//       // console.log(dirlist);
+//       // console.log(" - - - - - - - - - - - - - - ");
+//       t.equal(dirlist.length, 1, S.rootdir + " is defs a directory");
+//       t.end();
+//     }, final); // end utils.isdir
+//   }) // end S.setup
+// })
+
+// test(chalk.green("utils.isdir > " +S.filename +" is NOT directory"), function(t){
+//   var utils = require('../lib/utils');
+//   utils.setcounter(1);
+//   utils.isdir(S.filename, [], cb, kw, function callback(dirlist){
+//     t.equal(dirlist.length, 0, S.filename + " is NOT a directory");
+//     t.end();
+//   }); // end utils.isdir
+// })
+//
+// test(chalk.green("utils.isdir > " +S.rootdir +"/random.txt does not add anything to dirlist"), function(t) {
+//   var utils = require('../lib/utils');
+//   var nonexist = S.rootdir +"/random.txt";
+//   utils.setcounter(1);
+//   utils.isdir(nonexist, [], cb, kw, function(dirlist) {
+//     t.equal(dirlist.length, 0 , nonexist+ " does NOT get added");
+//     t.end();
+//   }); // end utils.isdir
+// })
+//
+//
+// test(chalk.green("utils.isdir > check for a non-existent file (should not DIE!)"), function(t){
+//   var nonexist = S.rootdir +"/random.txt";
+//   var utils = require('../lib/utils');
+//   utils.setcounter(1);
+//   utils.isdir(nonexist, [], cb, kw, function(dirlist) {
+//     // console.log(err)
+//     t.equal(dirlist.length, 0 , nonexist+ " keep on truckin'!");
+//     t.end();
+//   }); // end utils.isdir
+// })
+//
+//
+// test(chalk.green("utils.isdir > ../.git should be IGNORED"), function(t){
+//   var ignored = path.resolve(__dirname+"/../.git"); // this should be FOUND but IGNORED as "NOT" a dir
+//   var utils = require('../lib/utils');
+//   utils.setcounter(1);
+//   utils.isdir(ignored, [], cb, kw, function(dirlist, counter ) {
+//     // double check the .git dir actually exists
+//     fs.stat(ignored, function(staterr,stat) {
+//       t.equal(stat.isDirectory(), true, ignored+ " IS a directory but we are ignoring it!");
+//     })
+//
+//     // t.equal(err, null, ignored+ " does exist");
+//     t.equal(dirlist.length, 0, ignored+ " is ignored and treated as NOT a directory!")
+//     t.end();
+//   }); // end utils.isdir
+// })
+//
+// test("utils.isdirhandler > does absolutely nothing (Like a Boss!)", function(t) {
+//   var utils = require('../lib/utils');
+//   var dirlist = [];
+//   utils.isdir(S.filename, dirlist, utils.isdirhandler);
+//   t.equal(dirlist.length, 0, "Nothing added.")
+//   // t.equal(dirlist[0], S.rootdir, S.rootdir+" is the only item in dirlist")
+//   t.end();
+// })
+
+/** setup creates a sample directory tree:
+
+tmp/
+ |-- hi.js
+ |-- foo/
+      |-- bar/
+      |    |-- baz/
+      |         |-- hello.txt
+      |         |-- empty/
+      |-- bit/
+      |-- bat/
+      |-- bye.js
+**/
+
+test(chalk.cyan("utils.walk > " + __dirname), function(t) {
+  var utils = require('../lib/utils');
+  utils.setcounter(0);
+  utils.walk(__dirname+'/tmp/foo', [], function(dirlist) {
+    console.log(dirlist);
+    t.equal(dirlist.length, 5, __dirname+ " has so many child dirs...");
     t.end();
   }); // end utils.isdir
 })
 
-test("utils.isdir > " +S.rootdir +"/random.txt THROWS error", function(t){
-  var nonexist = S.rootdir +"/random.txt";
-  utils.isdir(nonexist, [], function(err, isdir) {
-    // console.log(err)
-    t.equal(err.code, 'ENOENT', nonexist+ " does NOT exist");
-    t.end();
-  }); // end utils.isdir
-})
+// test(chalk.green.bold("utils.walk > " + S.empty +" "), function(t) {
+//   var dirlist = [];
+//   var utils = require('../lib/utils');
+//   utils.walk(S.empty, dirlist, function(dirlist) {
+//     t.equal(dirlist.length, 0, __dirname+ " has so many child dirs...");
+//     t.end();
+//   }); // end utils.isdir
+// })
 
-test("utils.isdir > ../.git should be IGNORED", function(t){
-  var ignored = path.resolve(__dirname+"/../.git"); // this should be FOUND but IGNORED as "NOT" a dir
-  utils.isdir(ignored, [], function(err, isdir) {
-
-    // double check the .git dir actually exists
-    fs.stat(ignored, function(staterr,stat) {
-      t.equal(stat.isDirectory(), true, ignored+ " IS a directory but we are ignoring it!");
-    })
-
-    t.equal(err, null, ignored+ " does exist");
-    t.equal(isdir, false, ignored+ " is ignored and treated as NOT a directory!")
-    t.end();
-  }); // end utils.isdir
-})
-
-
-test("utils.isdirhandler > appends " +S.rootdir +" to dirlist", function(t) {
-  var empty = [];
-  utils.isdir(S.rootdir, empty, function(err, isdir, fd, dirlist) {
-    utils.isdirhandler(err, isdir, fd, dirlist, function(err, dirlist){
-      t.equal(dirlist.length, 1, dirlist[0]+" was added to dirlist")
-      t.equal(dirlist[0], S.rootdir, S.rootdir+" is the only item in dirlist")
-      t.end();
-    }); // utils.isdirhandler
-  }); // end utils.isdir
-})
-
-
-test("utils.isdirhandler > appends " +S.filename +" to dirlist", function(t) {
-  var empty = [];
-  utils.isdir(S.filename, empty, function(err, isdir, fd, dirlist) {
-    utils.isdirhandler(err, isdir, fd, dirlist, function(err2, dirlist) {
-      // t.equal(err, null, S.filename+ " not added to dirlist");
-      t.equal(dirlist.length, 0, S.filename+ " NOT added to dirlist ")
-      // t.equal(dirlist[0], S.rootdir, S.rootdir+" is the only item in dirlist")
-      t.end();
-    });
-
-    // t.equal(err, null, ignored+ " does exist");
-    // t.equal(isdir, false, ignored+ " is ignored and treated as NOT a directory!")
-    // t.end();
-    setTimeout(function(){
-    S.teardown(function(){
-      console.log(S.filename + " removed");
-    })
-    },500);
-  }); // end utils.isdir
-})
+// test("utils.walk > appends " +S.filename +" to dirlist", function(t) {
+//     // var empty = [];
+//     // utils.isdirhandler(null, true, empty, function(dirlist) {
+//       // t.equal(dirlist.length, 1, S.filename+ " added to dirlist ")
+//
+//     // });
+//
+//     // t.equal(err, null, ignored+ " does exist");
+//     // t.equal(isdir, false, ignored+ " is ignored and treated as NOT a directory!")
+//     // t.end();
+//     setTimeout(function(){
+//       S.teardown(function(){
+//         console.log(S.filename + " removed");
+//         t.end();
+//       })
+//     },500);
+// })
